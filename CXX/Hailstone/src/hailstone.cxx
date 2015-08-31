@@ -30,8 +30,11 @@ std::pair<unsigned int, unsigned int> maxHailstoneLength(unsigned int start = 1,
 	uint32_t largest = 0;
 	uint32_t largestNVal = start;
 
-	#pragma omp master
-	omp_set_num_threads(4);
+	std::cout << "doing numbers between : " << start << " and " << end << " for a total of: " << end - start << std::endl;
+	
+	omp_set_num_threads(8);
+
+	auto execStart = std::chrono::high_resolution_clock::now();
 
 	#pragma omp parallel for
 	for (cVal = start; cVal <= end; cVal += step)
@@ -44,13 +47,16 @@ std::pair<unsigned int, unsigned int> maxHailstoneLength(unsigned int start = 1,
 		}
 	}
 
+	auto total = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - execStart).count();
+	std::cout << "total time: " << total << "ms" << std::endl;
+
 	return std::pair<uint32_t, uint32_t>(largest, largestNVal);
 }
 
 int main()
 {
 	
-	auto largestSize = maxHailstoneLength(1, 50000000);
+	auto largestSize = maxHailstoneLength(1, 100000000);
 	std::cout << "Length: "<< largestSize.first << "\t NValue: " << largestSize.second << std::endl;
 	
 	std::cin.get();
