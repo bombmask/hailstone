@@ -4,7 +4,10 @@
 #include <fstream>
 #include <assert.h>
 #include <thread>
-#include <omp.h>
+#include <Windows.h>
+#include <omp.h> 
+
+
 
 std::vector<unsigned int> hailstone(unsigned int n)
 {
@@ -38,27 +41,34 @@ std::pair<unsigned int, unsigned int> maxHailstoneLength(unsigned int start = 1,
 	long long cVal = 0;
 	uint32_t largest = 0;
 	uint32_t largestNVal = start;
-	
+
 	// Print general information
 	std::cout << "doing numbers between : " << start << " and " << end << " for a total of: " << end - start << std::endl;
-	
-	// Set OpenMP total threads used, works best with amount of processors in the computer
-	omp_set_num_threads(8);
 
+	// Set OpenMP total threads used, works best with amount of processors in the computer
+	//omp_set_num_threads(omp_get_num_procs());
+
+	
 	// Get execution start time
 	auto execStart = std::chrono::high_resolution_clock::now();
 
 	// OpenMP pragma to create parallel for loop
-	#pragma omp parallel for
-	for (cVal = start; cVal <= end; cVal += step)
+	#pragma omp parallel
 	{
-		// Calc current 'n' value for hailstone
-		uint32_t cLength = hailstoneLength(cVal);
-		// Test largest and set values
-		if (cLength > largest)
+	#pragma omp master
+	{		std::cout << "Using '" << omp_get_num_threads() << "' thread(s)" << std::endl;	}
+
+	#pragma omp for 
+		for (cVal = start; cVal <= end; cVal += step)
 		{
-			largest = cLength;
-			largestNVal = cVal; 
+			// Calc current 'n' value for hailstone
+			uint32_t cLength = hailstoneLength(cVal);
+			// Test largest and set values
+			if (cLength > largest)
+			{
+				largest = cLength;
+				largestNVal = cVal;
+			}
 		}
 	}
 
@@ -70,11 +80,11 @@ std::pair<unsigned int, unsigned int> maxHailstoneLength(unsigned int start = 1,
 	return std::pair<uint32_t, uint32_t>(largest, largestNVal);
 }
 
-int main()
+int WinMain()
 {
-	
+	 
 	// Return largest size and print
-	auto largestSize = maxHailstoneLength(1, 100000000);
+	auto largestSize = maxHailstoneLength(1, 100'000'000);
 	std::cout << "Length: "<< largestSize.first << "\t NValue: " << largestSize.second << std::endl;
 	
 	// Wait for user input to close program
