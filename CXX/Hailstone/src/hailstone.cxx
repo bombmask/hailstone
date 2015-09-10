@@ -1,19 +1,19 @@
 #pragma once
-#include <vector>
-#include <utility>
+
 #include <iostream>
 #include <fstream>
-#include <assert.h>
-#include <thread>
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <chrono>
+
 #include <math.h>
 #include <omp.h>
-#include <fstream>
+
 #include "../include/utils.h"
-#include <Windows.h>
-#include <algorithm>
 
 #include <stdio.h>  /* defines FILENAME_MAX */
-#ifdef WIN32
+#ifdef _WIN32
 	#include <Windows.h>
 	#include <direct.h>
 	#define GetCurrentDir _getcwd
@@ -28,9 +28,10 @@ std::vector<ul_int> & hailstone(ul_int n)
 {
 	// Create values vector
 	auto v = new std::vector<ul_int>() ;
-
+	
 	// Super awesome forloop to calc the sequence, TODO: time against while loop
 	for (ul_int i = n; i > 1; i = (i % 2 == 0 ? i / 2 : 3 * i + 1)) { v->push_back(i); }
+	
 
 	// Add final value to vector since for exits on `1`
 	v->push_back(1);
@@ -61,21 +62,19 @@ std::pair<ul_int, ul_int> maxHailstoneLength(ul_int start = 1, ul_int end = 2, u
 
 	// Print general information
 	std::cout << "doing numbers between : " << start << " and " << end << " for a total of: " << end - start << std::endl;
-
-	// Set OpenMP total threads used, works best with amount of processors in the computer
-	//omp_set_num_threads(omp_get_num_procs());
-
 	
 	// Get execution start time
 	auto execStart = std::chrono::high_resolution_clock::now();
 
-	// OpenMP pragma to create parallel for loop
+	// Begin OpenMP Section
 	#pragma omp parallel
 	{
+	// Run on master thread only (otherwise prints this*core_count times)
 	#pragma omp master
 	{		std::cout << "Using '" << omp_get_num_threads() << "' thread(s)" << std::endl;	}
 
-	#pragma omp for 
+	// Begin optimize for loop OMP Don't wait on each cycle. 
+	#pragma omp for schedule(guided)
 		for (cVal = start; cVal <= end; cVal += step)
 		{
 			// Calc current 'n' value for hailstone
@@ -97,8 +96,7 @@ std::pair<ul_int, ul_int> maxHailstoneLength(ul_int start = 1, ul_int end = 2, u
 	return std::pair<uint32_t, uint32_t>(largest, largestNVal);
 }
 
-
-std::vector<std::vector<ul_int>> hailstones_mutliprocess(ul_int start = 1, ul_int end = 1000, ul_int step = 1)
+std::vector<std::vector<ul_int>> & hailstones_mutliprocess(ul_int start = 1, ul_int end = 1000, ul_int step = 1)
 {
 	// Store values
 	std::vector<std::vector<ul_int>> totals;
@@ -117,7 +115,7 @@ std::vector<std::vector<ul_int>> hailstones_mutliprocess(ul_int start = 1, ul_in
 	{	std::cout << "Using '" << omp_get_num_threads() << "' thread(s)" << std::endl;	}
 
 	std::vector<std::vector<ul_int>> vec_private;
-	#pragma omp for nowait
+	#pragma omp for nowait, schedule(dynamic, 1)
 		for (long long int index = start; index <= end; index += step)
 		{
 			vec_private.push_back(hailstone(index));
@@ -171,32 +169,26 @@ void write_hailstones(std::string filename, std::vector<std::vector<ul_int>> &da
 
 int main()
 {
-
+	// Make numbers human readable
 	std::locale loc("");
 	std::cout.imbue(loc);
 
 	uint64_t expo = 0;
-
-	//std::cout << "Enter order of magnitude(int): ";
-	//std::cin >> expo;
-
-	//expo = myPow(10, expo);
-
-	//std::cout << "Correct? :" << expo;
-
-	//std::cin.ignore();
-	//std::cin.get();
 	
 	// Return largest size and print
 	
 	std::cout << "Enter top value... ";
-	std::cin >> expo;
+	std::cin >> expo; std::cin.ignore();
+	std::cout << expo << std::endl;
 
 	const ul_int Value = expo;
-	//auto largestSize = maxHailstoneLength(1, Value);
-	//std::cout << "Length: "<< largestSize.first << "\t NValue: " << largestSize.second << std::endl;
-	write_hailstones("output.csv", hailstones_mutliprocess(1, Value));
+	
+	//write_hailstones("output.csv", hailstones_mutliprocess(1, Value));
+	auto pair_size = maxHailstoneLength(1,Value);
+	std::cout << "N:" << pair_size.first << "\tV:" << pair_size.second << std::endl;
+
 	// Wait for user input to close program
 	std::cin.get();
+
 	return 0;
 }
