@@ -99,7 +99,7 @@ std::pair<ul_int, ul_int> maxHailstoneLength(ul_int start = 1, ul_int end = 2, u
 std::vector<std::vector<ul_int>> & hailstones_mutliprocess(ul_int start = 1, ul_int end = 1000, ul_int step = 1)
 {
 	// Store values
-	std::vector<std::vector<ul_int>> totals;
+	auto &totals = *(new std::vector<std::vector<ul_int>>());
 
 	// Print general information
 	std::cout << "doing numbers between : " << start << " and " << end << " for a total of: " << (end - start)/step << std::endl;
@@ -123,6 +123,7 @@ std::vector<std::vector<ul_int>> & hailstones_mutliprocess(ul_int start = 1, ul_
 	#pragma omp critical
 		{ totals.insert(totals.end(), vec_private.begin(), vec_private.end()); }
 	}
+	
 
 	// End Chrono timeit of execution and print
 	auto total = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - execStart).count();
@@ -150,7 +151,11 @@ void write_hailstones(std::string filename, std::vector<std::vector<ul_int>> &da
 		<< "writing file..." << std::endl;
 
 	std::ofstream fout(filename);
-	
+	if (!fout.good())
+	{
+		throw fout.exceptions();
+	}
+
 	fout << "Numbers" << ", " << "Length" << ", " << "Sequence" << std::endl;
 	for (auto line : data)
 	{
@@ -169,23 +174,28 @@ void write_hailstones(std::string filename, std::vector<std::vector<ul_int>> &da
 
 int main()
 {
+
 	// Make numbers human readable
 	std::locale loc("");
 	std::cout.imbue(loc);
 
+	//enum class EXECUTION { CSV, LENGTH };
+	
+	//std::cout << "Execution type: " << std::endl;
+	//EXECUTION tSwitch;
+	//std::cin >> tSwitch;
+
 	uint64_t expo = 0;
 	
-	// Return largest size and print
-	
+	// Get User Value and Print to confirm
 	std::cout << "Enter top value... ";
 	std::cin >> expo; std::cin.ignore();
 	std::cout << expo << std::endl;
 
 	const ul_int Value = expo;
-	
-	//write_hailstones("output.csv", hailstones_mutliprocess(1, Value));
-	auto pair_size = maxHailstoneLength(1,Value);
-	std::cout << "N:" << pair_size.first << "\tV:" << pair_size.second << std::endl;
+
+	write_hailstones("output.csv", hailstones_mutliprocess(1, Value));
+	//auto pair_size = maxHailstoneLength(1,Value);	std::cout << "N:" << pair_size.first << "\tV:" << pair_size.second << std::endl;
 
 	// Wait for user input to close program
 	std::cin.get();
