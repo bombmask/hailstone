@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <cstdint>
 
+typedef uint64_t ul_int;
+
 std::pair<bool, unsigned int> chkPow2(uint64_t N)
 {
 	if (N % 2 != 0) { return std::make_pair<bool, unsigned int>(false, 0); }

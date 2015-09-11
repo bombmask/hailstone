@@ -6,6 +6,7 @@
 #include <utility>
 #include <algorithm>
 #include <chrono>
+#include <tuple>
 
 #include <math.h>
 #include <omp.h>
@@ -24,9 +25,10 @@
 
 typedef uint64_t ul_int;
 
-std::vector<ul_int> & hailstone(ul_int n)
+std::tuple<std::vector<ul_int>, ul_int, ul_int> & hailstone(ul_int n)
 {
 	// Create values vector
+	ul_int largest = 0;
 	auto v = new std::vector<ul_int>() ;
 	
 	// Super awesome forloop to calc the sequence, TODO: time against while loop
@@ -37,7 +39,7 @@ std::vector<ul_int> & hailstone(ul_int n)
 	v->push_back(1);
 	
 	// Annnnnnnd return
-	return *v;
+	return std::make_tuple(*v, n, largest);
 }
 
 

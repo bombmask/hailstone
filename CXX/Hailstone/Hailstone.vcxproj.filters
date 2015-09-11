@@ -18,9 +18,15 @@
     <ClCompile Include="src\hailstone.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sequence.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sequence.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
